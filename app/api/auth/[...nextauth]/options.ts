@@ -1,3 +1,4 @@
+import { getUserRole } from "@/services/getUserRole";
 import { AuthOptions } from "next-auth";
 import GitHubProvider from "next-auth/providers/github";
 import GoogleProvider from "next-auth/providers/google";
@@ -10,7 +11,7 @@ export const options: AuthOptions = {
       if (user) {
         token.uid = user.id; // adding the user role to the token, so it's available in the server side
         const userEmail = user.email ?? profile?.email;
-        token.role = userEmail === "mateus.fonto@gmail.com" ? "admin" : "user";
+        token.role = getUserRole(userEmail ?? "");
       }
 
       return token;
