@@ -13,7 +13,6 @@ try {
     throw error; // Rethrow if it's not the specific error we're looking for
   }
 }
-
 // Your existing table creation and data insertion logic here
 db.exec(`
   CREATE TABLE IF NOT EXISTS users (
