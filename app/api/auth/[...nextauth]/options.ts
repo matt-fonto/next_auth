@@ -2,6 +2,9 @@ import { getUserRole } from "@/services/getUserRole";
 import { AuthOptions } from "next-auth";
 import GitHubProvider from "next-auth/providers/github";
 import GoogleProvider from "next-auth/providers/google";
+import CredentialsProvider from "next-auth/providers/credentials";
+import { checkIfUserExists } from "@/services/checkIfUserExists";
+import bcrypt from "bcrypt";
 
 export const options: AuthOptions = {
   // To ensure the role is available through the application, we set the callbacks
@@ -68,6 +71,42 @@ export const options: AuthOptions = {
     GoogleProvider({
       clientId: process.env.GOOGLE_ID ?? "",
       clientSecret: process.env.GOOGLE_SECRET ?? "",
+    }),
+    CredentialsProvider({
+      name: "Credentials",
+      credentials: {
+        email: { label: "Email", type: "email", placeholder: "Your email" },
+        password: {
+          label: "Password",
+          type: "password",
+          placeholder: "Your password",
+        },
+      },
+      // @ts-ignore
+      async authorize(credentials, req) {
+        try {
+          const foundUser = checkIfUserExists(credentials?.email ?? "");
+
+          if (foundUser) {
+            console.log("user exists");
+            const match = await bcrypt.compare(
+              String(credentials?.password),
+              String(foundUser.password)
+            );
+
+            if (match) {
+              console.log("password match");
+
+              foundUser["role"] = "unverified email";
+              return foundUser;
+            }
+          }
+        } catch (error) {
+          console.log("error", error);
+        }
+
+        return null;
+      },
     }),
   ],
 };

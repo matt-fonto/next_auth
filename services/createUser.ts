@@ -1,12 +1,13 @@
 import Database from "better-sqlite3";
 import bcrypt from "bcrypt";
+import { checkIfUserExists } from "./checkIfUserExists";
+import { dbPath } from "@/db/dbPath";
 
 export async function createUser(
   name: string,
   email: string,
   role: "admin" | "user",
-  password: string,
-  dbPath: string
+  password: string
 ) {
   const db = new Database(dbPath);
   // Confirm that all fields are present
@@ -15,12 +16,12 @@ export async function createUser(
   }
 
   // Check if the user already exists
-  const user = db.prepare("SELECT * FROM users WHERE email = ?").get(email);
+  const user = checkIfUserExists(email);
   if (user) {
     throw new Error("User already exists");
   }
 
-  // Hash the password
+  // Hash the password -> we shouldn't store the password in plain text
   const hashPassword = await bcrypt.hash(password, 10);
   db.prepare(
     "INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, ?)"

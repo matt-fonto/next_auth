@@ -1,8 +1,7 @@
+import { dbPath } from "@/db/dbPath";
 import { createUser } from "@/services/createUser";
 import Database from "better-sqlite3";
 import { NextResponse } from "next/server";
-
-const dbPath = "mock_db.sqlite";
 
 export function GET() {
   const db = new Database(dbPath);
@@ -15,7 +14,7 @@ export function GET() {
 export async function POST(request: Request) {
   try {
     const { name, email, role, password } = await request.json(); //pulling the information
-    const result = await createUser(name, email, role, password, dbPath);
+    const result = await createUser(name, email, role, password);
 
     return NextResponse.json(result, { status: 201 });
   } catch (error) {
