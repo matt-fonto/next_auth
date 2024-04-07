@@ -28,6 +28,34 @@ export const options: AuthOptions = {
 
       return session;
     },
+
+    async signIn({ user, profile, account }) {
+      const payload = {
+        name: user.name,
+        email: user.email ?? profile?.email,
+        password: "NO_PASSWORD_AUTH_PROVIDER",
+        role: user.email === "mateus.fonto@gmail.com" ? "admin" : "user",
+      };
+
+      const res = await fetch("http://localhost:3000/api/users", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ ...payload }),
+      });
+
+      if (res.status === 409) {
+        return true;
+      }
+      if (!res.ok) {
+        console.log(`Error creating user: ${await res.json()}`);
+
+        return false;
+      }
+
+      return true;
+    },
   },
 
   // Setting up the providers

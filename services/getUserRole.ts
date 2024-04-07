@@ -1,5 +1,5 @@
 import Database from "better-sqlite3";
-const db = new Database("mytestdb.sqlite");
+const db = new Database("mock_db.sqlite");
 
 export function getUserRole(email: string) {
   // stmt => means statement

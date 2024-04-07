@@ -1,7 +1,11 @@
+import { createUser } from "@/services/createUser";
 import Database from "better-sqlite3";
+import { NextResponse } from "next/server";
+
+const dbPath = "mock_db.sqlite";
 
 export function GET() {
-  const db = new Database("mytestdb.sqlite");
+  const db = new Database(dbPath);
   const users = db.prepare("SELECT * FROM users").all();
   db.close();
 
@@ -9,22 +13,40 @@ export function GET() {
 }
 
 export async function POST(request: Request) {
-  const { name, email, role } = await request.json();
-  const db = new Database("mytestdb.sqlite");
+  try {
+    const { name, email, role, password } = await request.json(); //pulling the information
+    const result = await createUser(name, email, role, password, dbPath);
 
-  db.prepare("INSERT INTO users (name, email, role) VALUES (?, ?, ?)").run(
-    name,
-    email,
-    role
-  );
+    return NextResponse.json(result, { status: 201 });
+  } catch (error) {
+    console.log("error", error);
 
-  db.close();
+    if (error instanceof Error) {
+      let statusCode;
+      if (error.message === "User already exists") {
+        statusCode = 409;
+      } else if (error.message === "All fields are required") {
+        statusCode = 400;
+      } else {
+        statusCode = 500;
+      }
 
-  return new Response("User added");
+      return NextResponse.json(
+        { message: error.message },
+        { status: statusCode }
+      );
+    } else {
+      // This catch block only runs if the error is not an instance of Error
+      return NextResponse.json(
+        { message: "An unknown error occurred" },
+        { status: 500 }
+      );
+    }
+  }
 }
 
 export function DELETE() {
-  const db = new Database("mytestdb.sqlite");
+  const db = new Database(dbPath);
   db.prepare("DELETE FROM users").run();
   db.close();
 
